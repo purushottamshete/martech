@@ -10,9 +10,10 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.sql import func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, ENUM
 import uuid
 import pytz
+from models import ROLES
 
 # revision identifiers, used by Alembic.
 revision: str = '12f4699e67c4'
@@ -33,6 +34,7 @@ def upgrade() -> None:
         sa.Column('last_login', sa.DateTime(timezone=True), nullable=True),
         sa.Column('language', sa.String(length=2), nullable=False),
         sa.Column('timezone', sa.String(30), nullable=False),
+        sa.Column('role', ENUM(ROLES, name="role"), nullable=False, default=ROLES.USER),
         sa.Column('created_at', sa.DateTime, server_default=func.now()),
         sa.Column('updated_at', sa.DateTime,onupdate=func.now()),
     )
@@ -49,7 +51,8 @@ def upgrade() -> None:
                 "phone_no": "9999911111",
                 "is_active": True,
                 "language": 'EN',
-                "timezone": pytz.country_timezones['IT'][0]
+                "timezone": pytz.country_timezones['IT'][0],
+                "role": ROLES.SUPERADMIN
             },
 
         ],
