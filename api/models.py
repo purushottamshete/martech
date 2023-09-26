@@ -16,6 +16,10 @@ class ROLES(str, enum.Enum):
     ADMNIN = 'ADMIN'
     USER = 'USER'
 
+class STATUS(enum.Enum):
+    ACTIVE = 1
+    DISABLED = 0
+
 class User(Base):
     __tablename__ = "users"
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
@@ -31,4 +35,11 @@ class User(Base):
     role = Column(Enum(ROLES), default=ROLES.USER)
     # TODO Permissions/Groups
     
-
+class Plan(Base):
+    __tablename__ = "plans"
+    id = Column(primary_key=True, index=True)
+    name = Column(String(30))
+    price = Column(Float())
+    billing_cycle = Column(Integer())
+    status = Column(Enum(STATUS), default=STATUS.ACTIVE)
+    
