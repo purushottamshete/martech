@@ -11,15 +11,40 @@ class Base(DeclarativeBase):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-class ROLES(str, enum.Enum):
+class USER_ROLES(str, enum.Enum):
     SUPERADMIN = 'SUPERADMIN'
     ADMNIN = 'ADMIN'
     USER = 'USER'
 
-class STATUS(enum.Enum):
+class PLAN_STATUS(enum.Enum):
     ACTIVE = 1
     DISABLED = 0
 
+class ORDER_STATUS(enum.Enum):
+    CREATED = 1
+    SUCCESS = 2
+    FAILED = 3
+
+class PAYMENT_METHODS(enum.Enum):
+    CREDIT_CARD = 1
+    ESCROW = 2
+    PAISA_PAY = 3
+    PAYPAL = 4
+    OTHER = 5
+
+class PAYMENT_STATUS(enum.Enum):
+    CANCELED_REVERSAL = 1
+    COMPLETED = 2
+    CREATED = 3
+    DENINED = 3
+    EXPIRED = 4
+    FAILED = 5
+    PENDING = 6
+    REFUNDED = 7
+    REVERSED = 8
+    PROCESSED = 9
+    VOIDED = 10
+    
 class User(Base):
     __tablename__ = "users"
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
@@ -32,7 +57,7 @@ class User(Base):
     last_login = Column(DateTime(timezone=True))
     language = Column(String(2))
     timezone = Column(String(30))
-    role = Column(Enum(ROLES), default=ROLES.USER)
+    role = Column(Enum(USER_ROLES), default=USER_ROLES.USER)
     # TODO Permissions/Groups
     
 class Plan(Base):
@@ -41,5 +66,18 @@ class Plan(Base):
     name = Column(String(30))
     price = Column(Float())
     billing_cycle = Column(Integer())
-    status = Column(Enum(STATUS), default=STATUS.ACTIVE)
+    status = Column(Enum(PLAN_STATUS), default=PLAN_STATUS.ACTIVE)
+
+class Order(Base):
+    __tablename__ = "orders"
+    id = Column(primary_key=True, index=True)
+    user_id = Column(ForeignKey("users.id"))
+    plan_id = Column(ForeignKey("plans.id"))
+    date = Column(DateTime(timezone=True))
+    status = Column(Enum(ORDER_STATUS), default=ORDER_STATUS.CREATED)
+    payment_method = Column(Enum(PAYMENT_METHODS), nullable=True)
+    payment_status = Column(Enum(PAYMENT_STATUS), nullable=True)
+    invoice_id = Column(String(30))
+    billing_address = Column(String())
+
     
