@@ -1,8 +1,8 @@
-"""Adding api table
+"""Adding Page table
 
-Revision ID: dd2023a84f16
-Revises: ca75f1e42106
-Create Date: 2023-09-26 18:17:04.838052
+Revision ID: 590bad289ad5
+Revises: dd2023a84f16
+Create Date: 2023-09-26 18:24:49.062288
 
 """
 from typing import Sequence, Union
@@ -13,44 +13,44 @@ from sqlalchemy.sql import func
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'dd2023a84f16'
-down_revision: Union[str, None] = 'ca75f1e42106'
+revision: str = '590bad289ad5'
+down_revision: Union[str, None] = 'dd2023a84f16'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    apis_table = op.create_table('apis',
+    pages_table = op.create_table('pages',
         sa.Column('id', sa.Integer(), primary_key=True, nullable=False),
         sa.Column('name', sa.String(length=30), nullable=False),
         sa.Column('description', sa.String(), nullable=False),
         sa.Column('created_at', sa.DateTime, server_default=func.now()),
         sa.Column('updated_at', sa.DateTime,onupdate=func.now()),
     )
-    op.create_index(op.f('ix_apis_id'), 'apis', ['id'], unique=True)
+    op.create_index(op.f('ix_pages_id'), 'pages', ['id'], unique=True)
     op.bulk_insert(
-        apis_table,
+        pages_table,
         [
             {
                 "id": 1,
-                "name": "api1",
-                "description": "Test Api 1",
+                "name": "page1",
+                "description": "Test Page 1",
             },
             {
                 "id": 2,
-                "name": "api2",
-                "description": "Test Api 2",
+                "name": "page2",
+                "description": "Test Page 2",
             },
             {
                 "id": 3,
-                "name": "api3",
-                "description": "Test Api 3",
+                "name": "page3",
+                "description": "Test Page 3",
             },
 
         ],
     )
 
+
 def downgrade() -> None:
-    op.drop_index(op.f('ix_apis_id'), table_name='apis')
-    op.drop_table('apis')
-    
+    op.drop_index(op.f('ix_pages_id'), table_name='pages')
+    op.drop_table('pages')

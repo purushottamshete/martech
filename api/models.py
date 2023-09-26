@@ -85,3 +85,9 @@ class Api(Base):
     id = Column(primary_key=True, index=True)
     name = Column(String(30))
     description = Column(String())
+
+class Page(Base):
+    __tablename__ = "page"
+    id = Column(primary_key=True, index=True)
+    name = Column(String(30))
+    description = Column(String())
