@@ -60,3 +60,4 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index(op.f('ix_plans_id'), table_name='plans')
     op.drop_table('plans')
+    op.execute('DROP TYPE status;')

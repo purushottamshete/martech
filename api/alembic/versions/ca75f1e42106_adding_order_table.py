@@ -40,3 +40,5 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index(op.f('ix_orders_id'), table_name='orders')
     op.drop_table('orders')
+    op.execute('DROP TYPE payment_method;')
+    op.execute('DROP TYPE payment_status;')
