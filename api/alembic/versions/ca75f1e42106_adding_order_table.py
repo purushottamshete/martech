@@ -34,7 +34,7 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime, server_default=func.now()),
         sa.Column('updated_at', sa.DateTime,onupdate=func.now()),
     )
-    op.create_index(op.f('ix_order_id'), 'orders', ['id'], unique=True)
+    op.create_index(op.f('ix_orders_id'), 'orders', ['id'], unique=True)
     
 
 def downgrade() -> None:

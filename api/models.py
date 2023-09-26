@@ -80,4 +80,8 @@ class Order(Base):
     invoice_id = Column(String(30))
     billing_address = Column(String())
 
-    
+class Api(Base):
+    __tablename__ = "apis"
+    id = Column(primary_key=True, index=True)
+    name = Column(String(30))
+    description = Column(String())
