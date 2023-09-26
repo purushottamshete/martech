@@ -11,7 +11,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import ENUM
-from models import STATUS
+from models import PLAN_STATUS
 
 # revision identifiers, used by Alembic.
 revision: str = '6b3b6ebf54ba'
@@ -26,7 +26,7 @@ def upgrade() -> None:
         sa.Column('name', sa.String(length=30), nullable=False),
         sa.Column('price', sa.Float(), nullable=False),
         sa.Column('billing_cycle', sa.Integer(), nullable=False),
-        sa.Column('status', ENUM(STATUS, name='status'), nullable=False, default=STATUS.ACTIVE),
+        sa.Column('status', ENUM(PLAN_STATUS, name='status'), nullable=False, default=PLAN_STATUS.ACTIVE),
         sa.Column('created_at', sa.DateTime, server_default=func.now()),
         sa.Column('updated_at', sa.DateTime,onupdate=func.now()),
     )

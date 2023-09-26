@@ -13,7 +13,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID, ENUM
 import uuid
 import pytz
-from models import ROLES
+from models import USER_ROLES
 
 # revision identifiers, used by Alembic.
 revision: str = '12f4699e67c4'
@@ -34,7 +34,7 @@ def upgrade() -> None:
         sa.Column('last_login', sa.DateTime(timezone=True), nullable=True),
         sa.Column('language', sa.String(length=2), nullable=False),
         sa.Column('timezone', sa.String(30), nullable=False),
-        sa.Column('role', ENUM(ROLES, name="role"), nullable=False, default=ROLES.USER),
+        sa.Column('role', ENUM(USER_ROLES, name="role"), nullable=False, default=USER_ROLES.USER),
         sa.Column('created_at', sa.DateTime, server_default=func.now()),
         sa.Column('updated_at', sa.DateTime,onupdate=func.now()),
     )
@@ -52,7 +52,67 @@ def upgrade() -> None:
                 "is_active": True,
                 "language": 'EN',
                 "timezone": pytz.country_timezones['IT'][0],
-                "role": ROLES.SUPERADMIN
+                "role": USER_ROLES.SUPERADMIN
+            },
+            {
+                "id": uuid.uuid4(),
+                "first_name": "Test 1",
+                "last_name": "Admin",
+                "email": "contact@martech",
+                "hashed_password": "Admin@123",
+                "phone_no": "9999922222",
+                "is_active": True,
+                "language": 'EN',
+                "timezone": pytz.country_timezones['IT'][0],
+                "role": USER_ROLES.ADMNIN
+            },
+            {
+                "id": uuid.uuid4(),
+                "first_name": "Test 2",
+                "last_name": "Admin",
+                "email": "contact@martech",
+                "hashed_password": "Admin@123",
+                "phone_no": "9999933333",
+                "is_active": True,
+                "language": 'EN',
+                "timezone": pytz.country_timezones['IT'][0],
+                "role": USER_ROLES.ADMNIN
+            },
+            {
+                "id": uuid.uuid4(),
+                "first_name": "Test 1",
+                "last_name": "User",
+                "email": "contact@martech",
+                "hashed_password": "Admin@123",
+                "phone_no": "9999944444",
+                "is_active": True,
+                "language": 'EN',
+                "timezone": pytz.country_timezones['IT'][0],
+                "role": USER_ROLES.USER
+            },
+            {
+                "id": uuid.uuid4(),
+                "first_name": "Test 2",
+                "last_name": "User",
+                "email": "contact@martech",
+                "hashed_password": "Admin@123",
+                "phone_no": "9999955555",
+                "is_active": True,
+                "language": 'EN',
+                "timezone": pytz.country_timezones['IT'][0],
+                "role": USER_ROLES.USER
+            },
+            {
+                "id": uuid.uuid4(),
+                "first_name": "Test 3",
+                "last_name": "User",
+                "email": "contact@martech",
+                "hashed_password": "Admin@123",
+                "phone_no": "9999966666",
+                "is_active": True,
+                "language": 'EN',
+                "timezone": pytz.country_timezones['IT'][0],
+                "role": USER_ROLES.USER
             },
 
         ],
