@@ -95,3 +95,13 @@ class Page(Base):
     id = Column(primary_key=True, index=True)
     name = Column(String(30), unique=True)
     description = Column(String())
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+    id = Column(primary_key=True, index=True)
+    user_id = Column(ForeignKey("users.id"))
+    plan_id = Column(ForeignKey("plans.id"))
+    trial_period = Column(Integer())
+    discount = Column(Float())
+    start_date = Column(DateTime(timezone=True))
+    end_date = Column(DateTime(timezone=True))
