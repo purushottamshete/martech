@@ -44,7 +44,7 @@ class PAYMENT_STATUS(enum.Enum):
     REVERSED = 8
     PROCESSED = 9
     VOIDED = 10
-    
+
 class User(Base):
     __tablename__ = "users"
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
@@ -94,3 +94,9 @@ class Page(Base):
     name = Column(String(30))
     description = Column(String())
 
+class PlanPageLimit(Base):
+    __tablename__ = "plan_page_limit"
+    id = Column(primary_key=True, index=True)
+    plan_id = Column(ForeignKey("plans.id"))
+    page_id = Column(ForeignKey("pages.id"))
+    limit = Column(Integer())
