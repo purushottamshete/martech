@@ -26,11 +26,11 @@ def upgrade() -> None:
         sa.Column('name', sa.String(length=30), nullable=False),
         sa.Column('price', sa.Float(), nullable=False),
         sa.Column('billing_cycle', sa.Integer(), nullable=False),
-        sa.Column('trial_period', sa.Integer(), nullable=True),
-        sa.Column('discount', sa.Float(), nullable=True),
+        sa.Column('page_list_limit', sa.String(), nullable=False),
+        sa.Column('api_list_limit', sa.String(), nullable=False),
         sa.Column('status', ENUM(PLAN_STATUS, name='status'), nullable=False, default=PLAN_STATUS.ACTIVE),
         sa.Column('created_at', sa.DateTime, server_default=func.now()),
-        sa.Column('updated_at', sa.DateTime,onupdate=func.now()),
+        sa.Column('updated_at', sa.DateTime,onupdate=func.now())
     )
     op.create_index(op.f('ix_plans_id'), 'plans', ['id'], unique=True)
     op.bulk_insert(
@@ -40,18 +40,24 @@ def upgrade() -> None:
                 "id": 1,
                 "name": "Basic",
                 "price": 199,
+                "page_list_limit": "page1,page2,page3,page4",
+                "api_list_limit": "api,api2,api3,page4",
                 "billing_cycle": 28,
             },
             {
                 "id": 2,
                 "name": "Starter",
                 "price": 269,
+                "page_list_limit": "page1,page2,page3,page4,page5,page6",
+                "api_list_limit": "api,api2,api3,page4,api5,api6",
                 "billing_cycle": 28,
             },
             {
                 "id": 3,
                 "name": "Advanced",
                 "price": 449,
+                "page_list_limit": "page1,page2,page3,page4,page5,page6,page7,page8",
+                "api_list_limit": "api,api2,api3,page4,api5,api6,api7,api8",
                 "billing_cycle": 28,
             },
 

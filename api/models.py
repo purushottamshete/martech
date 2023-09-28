@@ -66,8 +66,8 @@ class Plan(Base):
     name = Column(String(30))
     price = Column(Float())
     billing_cycle = Column(Integer())
-    trial_period = Column(Integer())
-    discount = Column(Float())
+    page_list_limit = Column(String())
+    api_list_limit = Column(String())
     status = Column(Enum(PLAN_STATUS), default=PLAN_STATUS.ACTIVE)
 
 class Order(Base):
@@ -93,17 +93,3 @@ class Page(Base):
     id = Column(primary_key=True, index=True)
     name = Column(String(30))
     description = Column(String())
-
-class PlanPageLimit(Base):
-    __tablename__ = "plan_page_limit"
-    id = Column(primary_key=True, index=True)
-    plan_id = Column(ForeignKey("plans.id"))
-    page_id = Column(ForeignKey("pages.id"))
-    limit = Column(Integer())
-
-class PlanApiLimit(Base):
-    __tablename__ = "plan_api_limit"
-    id = Column(primary_key=True, index=True)
-    plan_id = Column(ForeignKey("plans.id"))
-    api_id = Column(ForeignKey("apis.id"))
-    limit = Column(Integer())
