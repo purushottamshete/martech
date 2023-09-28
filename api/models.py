@@ -66,6 +66,8 @@ class Plan(Base):
     name = Column(String(30))
     price = Column(Float())
     billing_cycle = Column(Integer())
+    trial_period = Column(Integer())
+    discount = Column(Float())
     status = Column(Enum(PLAN_STATUS), default=PLAN_STATUS.ACTIVE)
 
 class Order(Base):
@@ -87,7 +89,8 @@ class Api(Base):
     description = Column(String())
 
 class Page(Base):
-    __tablename__ = "page"
+    __tablename__ = "pages"
     id = Column(primary_key=True, index=True)
     name = Column(String(30))
     description = Column(String())
+

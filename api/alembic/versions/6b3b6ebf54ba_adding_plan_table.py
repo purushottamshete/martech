@@ -26,6 +26,8 @@ def upgrade() -> None:
         sa.Column('name', sa.String(length=30), nullable=False),
         sa.Column('price', sa.Float(), nullable=False),
         sa.Column('billing_cycle', sa.Integer(), nullable=False),
+        sa.Column('trial_period', sa.Integer(), nullable=True),
+        sa.Column('discount', sa.Float(), nullable=True),
         sa.Column('status', ENUM(PLAN_STATUS, name='status'), nullable=False, default=PLAN_STATUS.ACTIVE),
         sa.Column('created_at', sa.DateTime, server_default=func.now()),
         sa.Column('updated_at', sa.DateTime,onupdate=func.now()),
