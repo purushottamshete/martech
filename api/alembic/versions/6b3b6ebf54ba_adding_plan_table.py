@@ -28,6 +28,8 @@ def upgrade() -> None:
         sa.Column('billing_cycle', sa.Integer(), nullable=False),
         sa.Column('page_list_limit', sa.String(), nullable=False),
         sa.Column('api_list_limit', sa.String(), nullable=False),
+        sa.Column('users_limit', sa.Integer(), nullable=False),
+        sa.Column('storage_limit', sa.Float(), nullable=False),
         sa.Column('status', ENUM(PLAN_STATUS, name='status'), nullable=False, default=PLAN_STATUS.ACTIVE),
         sa.Column('created_at', sa.DateTime, server_default=func.now()),
         sa.Column('updated_at', sa.DateTime,onupdate=func.now())
@@ -42,6 +44,8 @@ def upgrade() -> None:
                 "price": 199,
                 "page_list_limit": "page1,page2,page3,page4",
                 "api_list_limit": "api,api2,api3,page4",
+                "users_limit": 4,
+                "storage_limit": 1.0,
                 "billing_cycle": 28,
             },
             {
@@ -50,6 +54,8 @@ def upgrade() -> None:
                 "price": 269,
                 "page_list_limit": "page1,page2,page3,page4,page5,page6",
                 "api_list_limit": "api,api2,api3,page4,api5,api6",
+                "users_limit": 6,
+                "storage_limit": 1.5,
                 "billing_cycle": 28,
             },
             {
@@ -58,6 +64,8 @@ def upgrade() -> None:
                 "price": 449,
                 "page_list_limit": "page1,page2,page3,page4,page5,page6,page7,page8",
                 "api_list_limit": "api,api2,api3,page4,api5,api6,api7,api8",
+                "users_limit": 8,
+                "storage_limit": 2.0,
                 "billing_cycle": 28,
             },
 

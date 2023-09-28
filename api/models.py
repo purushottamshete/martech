@@ -68,6 +68,8 @@ class Plan(Base):
     billing_cycle = Column(Integer())
     page_list_limit = Column(String())
     api_list_limit = Column(String())
+    users_limit = Column(Integer())
+    storage_limit = Column(Integer())
     status = Column(Enum(PLAN_STATUS), default=PLAN_STATUS.ACTIVE)
 
 class Order(Base):
@@ -85,11 +87,11 @@ class Order(Base):
 class Api(Base):
     __tablename__ = "apis"
     id = Column(primary_key=True, index=True)
-    name = Column(String(30))
+    name = Column(String(30), unique=True)
     description = Column(String())
 
 class Page(Base):
     __tablename__ = "pages"
     id = Column(primary_key=True, index=True)
-    name = Column(String(30))
+    name = Column(String(30), unique=True)
     description = Column(String())
