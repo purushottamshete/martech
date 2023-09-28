@@ -100,3 +100,10 @@ class PlanPageLimit(Base):
     plan_id = Column(ForeignKey("plans.id"))
     page_id = Column(ForeignKey("pages.id"))
     limit = Column(Integer())
+
+class PlanApiLimit(Base):
+    __tablename__ = "plan_api_limit"
+    id = Column(primary_key=True, index=True)
+    plan_id = Column(ForeignKey("plans.id"))
+    api_id = Column(ForeignKey("apis.id"))
+    limit = Column(Integer())
