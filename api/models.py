@@ -26,24 +26,17 @@ class ORDER_STATUS(enum.Enum):
     FAILED = 3
 
 class PAYMENT_METHODS(enum.Enum):
-    CREDIT_CARD = 1
-    ESCROW = 2
-    PAISA_PAY = 3
-    PAYPAL = 4
-    OTHER = 5
+    CARDS = 1
+    WALLETS = 2
+    BANK_DEBIT = 3
+    BANK_REDIRECT = 4
+    BANK_TRANSFER = 5
+    OTHER = 6
 
 class PAYMENT_STATUS(enum.Enum):
-    CANCELED_REVERSAL = 1
-    COMPLETED = 2
-    CREATED = 3
-    DENINED = 3
-    EXPIRED = 4
-    FAILED = 5
-    PENDING = 6
-    REFUNDED = 7
-    REVERSED = 8
-    PROCESSED = 9
-    VOIDED = 10
+    PROCESSING = 1
+    SUCCEEDED = 2
+    PAYMENT_FAILED = 3
 
 class User(Base):
     __tablename__ = "users"
