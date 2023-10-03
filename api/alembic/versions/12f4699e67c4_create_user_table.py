@@ -14,6 +14,8 @@ from sqlalchemy.dialects.postgresql import UUID, ENUM
 import uuid
 import pytz
 from models import USER_ROLES
+from passlib.context import CryptContext
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # revision identifiers, used by Alembic.
 revision: str = '12f4699e67c4'
@@ -47,7 +49,7 @@ def upgrade() -> None:
                 "first_name": "Super",
                 "last_name": "Admin",
                 "email": "contact@martech",
-                "hashed_password": "Admin@123",
+                "hashed_password": pwd_context.hash("Admin@123"),
                 "phone_no": "9999911111",
                 "is_active": True,
                 "language": 'EN',
@@ -59,7 +61,7 @@ def upgrade() -> None:
                 "first_name": "Test 1",
                 "last_name": "Admin",
                 "email": "contact@martech",
-                "hashed_password": "Admin@123",
+                "hashed_password": pwd_context.hash("Admin@123"),
                 "phone_no": "9999922222",
                 "is_active": True,
                 "language": 'EN',
@@ -71,7 +73,7 @@ def upgrade() -> None:
                 "first_name": "Test 2",
                 "last_name": "Admin",
                 "email": "contact@martech",
-                "hashed_password": "Admin@123",
+                "hashed_password": pwd_context.hash("Admin@123"),
                 "phone_no": "9999933333",
                 "is_active": True,
                 "language": 'EN',
@@ -83,7 +85,7 @@ def upgrade() -> None:
                 "first_name": "Test 1",
                 "last_name": "User",
                 "email": "contact@martech",
-                "hashed_password": "Admin@123",
+                "hashed_password": pwd_context.hash("Admin@123"),
                 "phone_no": "9999944444",
                 "is_active": True,
                 "language": 'EN',
@@ -95,7 +97,7 @@ def upgrade() -> None:
                 "first_name": "Test 2",
                 "last_name": "User",
                 "email": "contact@martech",
-                "hashed_password": "Admin@123",
+                "hashed_password": pwd_context.hash("Admin@123"),
                 "phone_no": "9999955555",
                 "is_active": True,
                 "language": 'EN',
@@ -107,7 +109,7 @@ def upgrade() -> None:
                 "first_name": "Test 3",
                 "last_name": "User",
                 "email": "contact@martech",
-                "hashed_password": "Admin@123",
+                "hashed_password": pwd_context.hash("Admin@123"),
                 "phone_no": "9999966666",
                 "is_active": True,
                 "language": 'EN',
