@@ -1,25 +1,24 @@
 from fastapi import APIRouter
 from typing import Annotated
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, HTTPException, status
 from schema import Token, TokenData, User as UserSchema, UserInDB
 from utility import verify_password
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
-from sqlalchemy.orm import Session
-from models import User as UserModel
+from models import User as UserModel, USER_ROLES
 from fastapi_sqlalchemy import db
-from dotenv import load_dotenv
-import os
-
-load_dotenv("../.env")
+import settings
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def get_user_by_email(email: str):
     user =  db.session.query(UserModel).filter(UserModel.email == email).first()
-    return UserInDB.model_validate(user)
+    if user:
+        return UserInDB.model_validate(user)
+    else:
+        return user
 
 def authenticate_user(username: str, password: str):
     user = get_user_by_email(email=username)
@@ -36,7 +35,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, os.environ['SECRET_KEY'], algorithm=os.environ['ALGORITHM'])
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
@@ -47,23 +46,35 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     )
 
     try:
-        
-        payload = jwt.decode(token, os.environ['SECRET_KEY'], algorithms=[os.environ['ALGORITHM']])
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         email = payload.get("sub")
         if email is None:
             raise credentials_exception
         token_data = TokenData(email=email)
     except JWTError:
         raise credentials_exception
+    
     user = get_user_by_email(email=token_data.email)
-
     if user is None:
         raise credentials_exception
     return user
 
+
 async def get_current_active_user(current_user: UserSchema = Depends(get_current_user)):
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+async def get_current_admin_user(current_user: UserSchema = Depends(get_current_active_user)):
+    if not (current_user.role == USER_ROLES.ADMNIN or current_user.role == USER_ROLES.SUPERADMIN ):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
+                            detail="Not a Admin user")
+    return current_user
+
+async def get_current_superadmin_user(current_user: UserSchema = Depends(get_current_active_user)):
+    if not current_user.role == USER_ROLES.SUPERADMIN:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
+                            detail="Not a Super Admin user")
     return current_user
 
 @router.post("/token", response_model=Token)
@@ -74,6 +85,7 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     Args: 
     form_date : OAuth2PasswordRequestForm
         Form data containing username and password of OAuth2PasswordRequestForm type
+        In our case we are using email as a Username
     
     Returns:
     Token
@@ -86,7 +98,7 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=int(os.environ['ACCESS_TOKEN_EXPIRE_MINUTES']))
+    access_token_expires = timedelta(minutes=int(settings.ACCESS_TOKEN_EXPIRE_MINUTES))
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )

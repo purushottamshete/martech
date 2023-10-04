@@ -45,13 +45,12 @@ class User(Base):
     last_name = Column(String(30))
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    phone_no = Column(String(15))
+    phone_no = Column(String(15), nullable=True)
     is_active = Column(Boolean, default=False)
-    last_login = Column(DateTime(timezone=True))
-    language = Column(String(2))
-    timezone = Column(String(30))
+    last_login = Column(DateTime(timezone=True), nullable=True)
+    language = Column(String(2), nullable=True)
+    timezone = Column(String(30), nullable=True)
     role = Column(Enum(USER_ROLES), default=USER_ROLES.USER)
-    # TODO Permissions/Groups
     
 class Plan(Base):
     __tablename__ = "plans"

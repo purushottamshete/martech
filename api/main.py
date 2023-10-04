@@ -1,22 +1,21 @@
 from fastapi import FastAPI
 import uvicorn
-from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_sqlalchemy import DBSessionMiddleware, db
-import os
-from typing import Annotated
 from fastapi import Depends, FastAPI
-from auth import get_current_active_user
+from routers.auth import get_current_active_user
 from schema import User as UserSchema
-from auth import router as auth_router
-load_dotenv("../.env")
+from routers.auth import router as auth_router
+from routers.users import router as user_router
+import settings
 
 app = FastAPI()
 app.include_router(auth_router)
+app.include_router(user_router)
 
 app.add_middleware(
     DBSessionMiddleware, 
-    db_url=os.environ['DATABASE_URL'])
+    db_url=settings.DATABASE_URL)
 
 origins = [
     "http://localhost",
@@ -35,9 +34,6 @@ app.add_middleware(
 def root():
     return {"Hello": "World"}
 
-@app.get("/me/", response_model=UserSchema)
-async def read_users_me(current_user: UserSchema = Depends(get_current_active_user)):
-    return current_user
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=8000, log_level="info")
