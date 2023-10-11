@@ -1,17 +1,17 @@
 from fastapi import FastAPI
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_sqlalchemy import DBSessionMiddleware, db
-from fastapi import Depends, FastAPI
-from routers.auth import get_current_active_user
-from schema import User as UserSchema
+from fastapi_sqlalchemy import DBSessionMiddleware
+from fastapi import FastAPI
 from routers.auth import router as auth_router
 from routers.users import router as user_router
+from routers.activity_log import router as activity_router
 import settings
 
 app = FastAPI()
 app.include_router(auth_router)
 app.include_router(user_router)
+app.include_router(activity_router)
 
 app.add_middleware(
     DBSessionMiddleware, 
@@ -32,8 +32,7 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"Hello": "World"}
-
+    return {"message": "Welcome to Martech"}
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=8000, log_level="info")

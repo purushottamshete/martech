@@ -38,6 +38,11 @@ class PAYMENT_STATUS(enum.Enum):
     SUCCEEDED = 2
     PAYMENT_FAILED = 3
 
+class ACTIVITY_TYPE(enum.Enum):
+    LOGIN = 1
+    LOGOUT = 2
+    CALLAPI = 3
+
 class User(Base):
     __tablename__ = "users"
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
@@ -54,7 +59,7 @@ class User(Base):
     
 class Plan(Base):
     __tablename__ = "plans"
-    id = Column(primary_key=True, index=True)
+    id = Column(Integer(), primary_key=True, index=True, autoincrement=True)
     name = Column(String(30))
     price = Column(Float())
     billing_cycle = Column(Integer())
@@ -66,7 +71,7 @@ class Plan(Base):
 
 class Order(Base):
     __tablename__ = "orders"
-    id = Column(primary_key=True, index=True)
+    id = Column(Integer(), primary_key=True, index=True, autoincrement=True)
     user_id = Column(ForeignKey("users.id"))
     plan_id = Column(ForeignKey("plans.id"))
     date = Column(DateTime(timezone=True))
@@ -78,22 +83,29 @@ class Order(Base):
 
 class Api(Base):
     __tablename__ = "apis"
-    id = Column(primary_key=True, index=True)
+    id = Column(Integer(), primary_key=True, index=True, autoincrement=True)
     name = Column(String(30), unique=True)
     description = Column(String())
 
 class Page(Base):
     __tablename__ = "pages"
-    id = Column(primary_key=True, index=True)
+    id = Column(Integer(), primary_key=True, index=True, autoincrement=True)
     name = Column(String(30), unique=True)
     description = Column(String())
 
 class Subscription(Base):
     __tablename__ = "subscriptions"
-    id = Column(primary_key=True, index=True)
+    id = Column(Integer(), primary_key=True, index=True, autoincrement=True)
     user_id = Column(ForeignKey("users.id"))
     plan_id = Column(ForeignKey("plans.id"))
     trial_period = Column(Integer())
     discount = Column(Float())
     start_date = Column(DateTime(timezone=True))
     end_date = Column(DateTime(timezone=True))
+
+class ActivityLog(Base):
+    __tablename__ = "activity_log"
+    id = Column(Integer(), primary_key=True, index=True, autoincrement=True)
+    user_id = Column(ForeignKey("users.id"))
+    activity_type = Column(Enum(ACTIVITY_TYPE), nullable=False)
+    activity_desc = Column(String(30))

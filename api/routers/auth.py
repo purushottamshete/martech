@@ -1,14 +1,19 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks, Request, Response
 from typing import Annotated
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import Depends, HTTPException, status
 from schema import Token, TokenData, User as UserSchema, UserInDB
-from utility import verify_password
+from utility import verify_password, audit_log
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
-from models import User as UserModel, USER_ROLES
+from models import User as UserModel, USER_ROLES, ACTIVITY_TYPE
 from fastapi_sqlalchemy import db
+from utility import update_user_lastlogin, audit_log
 import settings
+
+
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -60,9 +65,10 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     return user
 
 
-async def get_current_active_user(current_user: UserSchema = Depends(get_current_user)):
+async def get_current_active_user(request: Request, background_tasks: BackgroundTasks, current_user: UserSchema = Depends(get_current_user)):
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
+    background_tasks.add_task(audit_log, id=current_user.id, type=ACTIVITY_TYPE.CALLAPI, desc=request.url.path)
     return current_user
 
 async def get_current_admin_user(current_user: UserSchema = Depends(get_current_active_user)):
@@ -77,8 +83,9 @@ async def get_current_superadmin_user(current_user: UserSchema = Depends(get_cur
                             detail="Not a Super Admin user")
     return current_user
 
+    
 @router.post("/token", response_model=Token)
-async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+async def login_for_access_token(request: Request, form_data: Annotated[OAuth2PasswordRequestForm, Depends()], background_tasks: BackgroundTasks):
     """
     This method is used to generate the access token
 
@@ -102,4 +109,7 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
+    background_tasks.add_task(update_user_lastlogin, user.id)
+    background_tasks.add_task(audit_log, id=user.id, type=ACTIVITY_TYPE.LOGIN, desc=request.url.path)
     return {"access_token": access_token, "token_type": "bearer"}
+

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, validator
 from datetime import datetime
-from models import USER_ROLES
+from models import USER_ROLES, ACTIVITY_TYPE
 from uuid import UUID
 
 class Token(BaseModel):
@@ -57,3 +57,11 @@ class User(UserBase):
 
 class UserInDB(User):
     hashed_password: str
+
+
+class ActivityLog(BaseModel):
+    id: int
+    user_id: UUID
+    activity_type: ACTIVITY_TYPE
+    activity_desc: str
+    created_at: datetime

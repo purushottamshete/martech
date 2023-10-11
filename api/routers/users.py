@@ -18,6 +18,8 @@ async def get_admins():
     users =  db.session.query(UserModel).filter(UserModel.role == USER_ROLES.ADMNIN).all()
     return users
 
+# TODO Get Admin for the UserID
+
 # Get Users
 @router.get("/users/", dependencies=[Depends(get_current_admin_user)], response_model=List[UserSchema])
 async def get_users():
