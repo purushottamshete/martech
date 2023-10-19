@@ -1,7 +1,8 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, validator
 from datetime import datetime
-from models import USER_ROLES, ACTIVITY_TYPE
+from models import USER_ROLES, ACTIVITY_TYPE, PLAN_STATUS, ORDER_STATUS, PAYMENT_METHODS, PAYMENT_STATUS
 from uuid import UUID
+from typing import List
 
 class Token(BaseModel):
     access_token: str
@@ -65,3 +66,38 @@ class ActivityLog(BaseModel):
     activity_type: ACTIVITY_TYPE
     activity_desc: str
     created_at: datetime
+
+class EmailSchema(BaseModel):
+    email: List[EmailStr]
+
+class Plan(BaseModel):
+    name: str = Field(min_length=1, max_length=30)
+    price: float
+    billing_cycle: int
+    page_list_limit: str
+    api_list_limit: str
+    users_limit: int
+    storage_limit: float 
+
+class PlanInDB(Plan):
+    id: int
+    status: PLAN_STATUS
+
+class PlanUpdate(Plan):
+    status: PLAN_STATUS
+
+class Order(BaseModel):
+    user_id: UUID
+    plan_id: int
+    payment_method: PAYMENT_METHODS
+    payment_status: PAYMENT_STATUS
+    invoice_id: str | None = Field(max_length=30)
+    billing_address: str
+
+class OrderInDB(Order):
+    id: int
+    status: ORDER_STATUS
+    date: datetime | None = None
+
+class OrderUpdate(Order):
+    status: ORDER_STATUS

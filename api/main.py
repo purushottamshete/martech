@@ -6,12 +6,18 @@ from fastapi import FastAPI
 from routers.auth import router as auth_router
 from routers.users import router as user_router
 from routers.activity_log import router as activity_router
+from routers.emails import router as email_router
+from routers.plans import router as plan_router
+from routers.orders import router as order_router
 import settings
 
 app = FastAPI()
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(activity_router)
+app.include_router(email_router)
+app.include_router(plan_router)
+app.include_router(order_router)
 
 app.add_middleware(
     DBSessionMiddleware, 
@@ -35,4 +41,4 @@ def root():
     return {"message": "Welcome to Martech"}
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", port=8000, log_level="info")
+    uvicorn.run("main:app", port=8000, log_level="info", reload=True)

@@ -23,14 +23,14 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     plans_table = op.create_table('plans',
         sa.Column('id', sa.Integer(), primary_key=True, nullable=False),
-        sa.Column('name', sa.String(length=30), nullable=False),
+        sa.Column('name', sa.String(length=30), nullable=False, unique=True),
         sa.Column('price', sa.Float(), nullable=False),
         sa.Column('billing_cycle', sa.Integer(), nullable=False),
         sa.Column('page_list_limit', sa.String(), nullable=False),
         sa.Column('api_list_limit', sa.String(), nullable=False),
         sa.Column('users_limit', sa.Integer(), nullable=False),
         sa.Column('storage_limit', sa.Float(), nullable=False),
-        sa.Column('status', ENUM(PLAN_STATUS, name='status'), nullable=False, default=PLAN_STATUS.ACTIVE),
+        sa.Column('status', ENUM(PLAN_STATUS, name='status'), nullable=False, default=PLAN_STATUS.DISABLED),
         sa.Column('created_at', sa.DateTime, server_default=func.now()),
         sa.Column('updated_at', sa.DateTime,onupdate=func.now())
     )
@@ -39,7 +39,6 @@ def upgrade() -> None:
         plans_table,
         [
             {
-                "id": 1,
                 "name": "Basic",
                 "price": 199,
                 "page_list_limit": "page1,page2,page3,page4",
@@ -47,9 +46,9 @@ def upgrade() -> None:
                 "users_limit": 4,
                 "storage_limit": 1.0,
                 "billing_cycle": 28,
+                "status": PLAN_STATUS.ACTIVE
             },
             {
-                "id": 2,
                 "name": "Starter",
                 "price": 269,
                 "page_list_limit": "page1,page2,page3,page4,page5,page6",
@@ -57,9 +56,9 @@ def upgrade() -> None:
                 "users_limit": 6,
                 "storage_limit": 1.5,
                 "billing_cycle": 28,
+                "status": PLAN_STATUS.ACTIVE
             },
             {
-                "id": 3,
                 "name": "Advanced",
                 "price": 449,
                 "page_list_limit": "page1,page2,page3,page4,page5,page6,page7,page8",
@@ -67,6 +66,7 @@ def upgrade() -> None:
                 "users_limit": 8,
                 "storage_limit": 2.0,
                 "billing_cycle": 28,
+                "status": PLAN_STATUS.ACTIVE
             },
 
         ],
