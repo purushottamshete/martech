@@ -25,7 +25,7 @@ def upgrade() -> None:
         sa.Column('id', sa.Integer(), primary_key=True, nullable=False),
         sa.Column("user_id", UUID(), sa.ForeignKey("users.id")),
         sa.Column('activity_type', ENUM(ACTIVITY_TYPE, name='activity_type'), nullable=False),
-        sa.Column('activity_desc', sa.String(length=30), nullable=False),
+        sa.Column('activity_desc', sa.String(), nullable=False),
         sa.Column('created_at', sa.DateTime, server_default=func.now()),
         sa.Column('updated_at', sa.DateTime,onupdate=func.now()),
     )
