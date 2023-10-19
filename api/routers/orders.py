@@ -8,20 +8,34 @@ from typing import List
 from fastapi_sqlalchemy import db
 from datetime import datetime
 import pytz
+from uuid import UUID 
+from models import USER_ROLES, User as UserModel, Plan as PlanModel
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Get Orders
-@router.get("/orders/", dependencies=[Depends(get_current_superadmin_user)], response_model=List[OrderInDBSchema])
-async def get_orders():
-    orders =  db.session.query(OrderModel).order_by(OrderModel.created_at).all()
+@router.get("/orders/", dependencies=[Depends(get_current_active_user)], response_model=List[OrderInDBSchema])
+async def get_orders(current_user = Depends(get_current_active_user)):
+    # Super Admin can view all the order
+    if current_user.role == USER_ROLES.SUPERADMIN:
+        orders =  db.session.query(OrderModel).order_by(OrderModel.created_at).all()
+    else:
+        orders =  db.session.query(OrderModel).filter(OrderModel.user_id == current_user.id).order_by(OrderModel.created_at).all()
     return orders
 
 # Create Orders
 @router.post("/orders/", dependencies=[Depends(get_current_active_user)], response_model=OrderInDBSchema)
 async def create_order(order: OrderSchema, current_user = Depends(get_current_active_user)):
 
+    db_user =  db.session.query(UserModel).filter(UserModel.id == order.user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=400, detail="Invalid User")
+    
+    db_plan =  db.session.query(PlanModel).filter(PlanModel.id == order.plan_id).first()
+    if not db_plan:
+        raise HTTPException(status_code=400, detail="Invalid Plan")
+    
     if order.payment_status == PAYMENT_STATUS.PROCESSING:
         ord_status = ORDER_STATUS.CREATED
     elif order.payment_status == PAYMENT_STATUS.PAYMENT_FAILED: 
@@ -40,57 +54,77 @@ async def create_order(order: OrderSchema, current_user = Depends(get_current_ac
         tz = pytz.UTC
         #raise HTTPException(status_code=400, detail="Invlaid Timezone")
     
-    db_order = OrderModel(user_id=order.user_id, 
-                        plan_id=order.plan_id, 
-                        date=datetime.now(tz=tz),
-                        status=ord_status,
-                        payment_method=order.payment_method,
-                        payment_status=order.payment_status,
-                        invoice_id=order.invoice_id,
-                        billing_address=order.billing_address,
+    db_order = OrderModel(  user_id=order.user_id, 
+                            plan_id=order.plan_id, 
+                            date_time=datetime.now(tz=tz),
+                            status=ord_status,
+                            payment_method=order.payment_method,
+                            payment_status=order.payment_status,
+                            invoice_id=order.invoice_id,
+                            billing_address=order.billing_address,
                         )
     db.session.add(db_order)
     db.session.commit()
     db.session.refresh(db_order)
     return db_order
 
-# # Update Plan
-# @router.put("/plans/{plan_id}", response_model=PlanInDBSchema, dependencies=[Depends(get_current_superadmin_user)])
-# def update_plan(id: int, plan: PlanUpdateSchema):
-#     db_plan =  db.session.query(PlanModel).filter(PlanModel.id == id).first()
-#     if not db_plan:
-#         raise HTTPException(status_code=400, detail="Invalid Plan")
+# Update Order
+@router.put("/orders/{order_id}", dependencies=[Depends(get_current_active_user)], response_model=OrderInDBSchema)
+def update_order(order_id: UUID, order: OrderSchema, current_user = Depends(get_current_active_user)):
+    db_order =  db.session.query(OrderModel).filter(OrderModel.id == order_id).first()
+    if not db_order:
+        raise HTTPException(status_code=400, detail="Invalid Order")
     
-#     plans_check =  db.session.query(PlanModel).filter(PlanModel.name == plan.name).first()
-#     if plans_check:
-#         raise HTTPException(status_code=400, detail="Plan Name already exists")
+    # Super Admin Allowed to update all orders
+    if current_user.role == USER_ROLES.SUPERADMIN:
+        pass
+    else:
+        # Others allowed to update own order only
+        if current_user.id != db_order.user_id:
+            raise HTTPException(status_code=401, detail="Not Autherized to update this order")
+        
+    db_user =  db.session.query(UserModel).filter(UserModel.id == order.user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=400, detail="Invalid User")
     
-#     db_plan.name = plan.name
-#     db_plan.price = plan.price
-#     db_plan.billing_cycle = plan.billing_cycle
-#     db_plan.page_list_limit = plan.page_list_limit
-#     db_plan.api_list_limit = plan.api_list_limit
-#     db_plan.users_limit = plan.users_limit
-#     db_plan.storage_limit = plan.storage_limit
-#     db_plan.status = plan.status
-
-#     db.session.commit()
-#     db.session.refresh(db_plan)
-#     return db_plan
-
-# # Delete Plan
-# @router.delete("/plans/{plan_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(get_current_superadmin_user)])
-# def delete_plan(id: int, current_user = Depends(get_current_superadmin_user)):
-
-#     # Only Super Admin can delete Plans
-#     if current_user.role != USER_ROLES.SUPERADMIN: 
-#         raise HTTPException(status_code=401, detail="Not Autherized")
+    db_plan =  db.session.query(PlanModel).filter(PlanModel.id == order.plan_id).first()
+    if not db_plan:
+        raise HTTPException(status_code=400, detail="Invalid Plan")
     
-#     db_plan =  db.session.query(PlanModel).filter(PlanModel.id == id).first()
-#     if not db_plan:
-#         raise HTTPException(status_code=400, detail="Invalid Plan")
-    
-#     db.session.delete(db_plan)
-#     db.session.commit()
+    if order.payment_status == PAYMENT_STATUS.PROCESSING:
+        ord_status = ORDER_STATUS.CREATED
+    elif order.payment_status == PAYMENT_STATUS.PAYMENT_FAILED: 
+        ord_status = ORDER_STATUS.FAILED
+    elif order.payment_status == PAYMENT_STATUS.SUCCEEDED:
+        ord_status = ORDER_STATUS.SUCCESS
+    else:
+        raise HTTPException(status_code=400, detail="Invlaid Payment Status")
 
-#     return None
+    db_order.user_id = order.user_id
+    db_order.plan_id = order.plan_id
+    db_order.payment_method = order.payment_method
+    db_order.payment_status = order.payment_status
+    db_order.invoice_id = order.invoice_id
+    db_order.billing_address = order.billing_address
+    db_order.status = ord_status
+
+    db.session.commit()
+    db.session.refresh(db_order)
+    return db_order
+
+# Delete Order
+@router.delete("/orders/{order_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(get_current_superadmin_user)])
+def delete_order(order_id: UUID, current_user = Depends(get_current_superadmin_user)):
+
+    # Only Super Admin can delete Orders
+    if current_user.role != USER_ROLES.SUPERADMIN: 
+        raise HTTPException(status_code=401, detail="Not Autherized")
+    
+    db_order =  db.session.query(OrderModel).filter(OrderModel.id == order_id).first()
+    if not db_order:
+        raise HTTPException(status_code=400, detail="Invalid Order")
+    
+    db.session.delete(db_order)
+    db.session.commit()
+
+    return None

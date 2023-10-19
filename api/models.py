@@ -71,14 +71,14 @@ class Plan(Base):
 
 class Order(Base):
     __tablename__ = "orders"
-    id = Column(Integer(), primary_key=True, index=True, autoincrement=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     user_id = Column(ForeignKey("users.id"))
     plan_id = Column(ForeignKey("plans.id"))
-    date = Column(DateTime(timezone=True))
+    date_time = Column(DateTime(timezone=True))
     status = Column(Enum(ORDER_STATUS), default=ORDER_STATUS.CREATED)
     payment_method = Column(Enum(PAYMENT_METHODS), nullable=False)
     payment_status = Column(Enum(PAYMENT_STATUS), nullable=False)
-    invoice_id = Column(String(30))
+    invoice_id = Column(String(50))
     billing_address = Column(String())
 
 class Api(Base):

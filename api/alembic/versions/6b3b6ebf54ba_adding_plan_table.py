@@ -30,7 +30,7 @@ def upgrade() -> None:
         sa.Column('api_list_limit', sa.String(), nullable=False),
         sa.Column('users_limit', sa.Integer(), nullable=False),
         sa.Column('storage_limit', sa.Float(), nullable=False),
-        sa.Column('status', ENUM(PLAN_STATUS, name='status'), nullable=False, default=PLAN_STATUS.DISABLED),
+        sa.Column('status', ENUM(PLAN_STATUS, name='plan_status'), nullable=False, default=PLAN_STATUS.DISABLED),
         sa.Column('created_at', sa.DateTime, server_default=func.now()),
         sa.Column('updated_at', sa.DateTime,onupdate=func.now())
     )
@@ -76,4 +76,4 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index(op.f('ix_plans_id'), table_name='plans')
     op.drop_table('plans')
-    op.execute('DROP TYPE status;')
+    op.execute('DROP TYPE plan_status;')

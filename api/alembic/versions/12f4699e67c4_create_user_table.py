@@ -36,7 +36,7 @@ def upgrade() -> None:
         sa.Column('last_login', sa.DateTime(timezone=True), nullable=True),
         sa.Column('language', sa.String(length=2), nullable=True),
         sa.Column('timezone', sa.String(30), nullable=True),
-        sa.Column('role', ENUM(USER_ROLES, name="role"), nullable=False, default=USER_ROLES.USER),
+        sa.Column('role', ENUM(USER_ROLES, name="user_role"), nullable=False, default=USER_ROLES.USER),
         sa.Column('created_at', sa.DateTime, server_default=func.now()),
         sa.Column('updated_at', sa.DateTime,onupdate=func.now()),
     )
@@ -124,4 +124,4 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index(op.f('ix_users_id'), table_name='users')
     op.drop_table('users')
-    op.execute('DROP TYPE role;')
+    op.execute('DROP TYPE user_role;')

@@ -95,9 +95,9 @@ class Order(BaseModel):
     billing_address: str
 
 class OrderInDB(Order):
-    id: int
+    id: UUID
     status: ORDER_STATUS
-    date: datetime | None = None
+    date_time: datetime | None = None
 
 class OrderUpdate(Order):
     status: ORDER_STATUS
