@@ -1,4 +1,4 @@
-from sqlalchemy import UUID, Boolean, String, ForeignKey, Integer, Date, Float, DateTime, Column, Enum
+from sqlalchemy import UUID, Boolean, String, ForeignKey, Integer, Date, Float, DateTime, Column, Enum, Identity
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
@@ -13,12 +13,12 @@ class Base(DeclarativeBase):
 
 class USER_ROLES(str, enum.Enum):
     SUPERADMIN = 'SUPERADMIN'
-    ADMNIN = 'ADMIN'
+    ADMIN = 'ADMIN'
     USER = 'USER'
 
 class PLAN_STATUS(enum.Enum):
     ACTIVE = 1
-    DISABLED = 0
+    DISABLED = 2
 
 class ORDER_STATUS(enum.Enum):
     CREATED = 1
@@ -59,15 +59,15 @@ class User(Base):
     
 class Plan(Base):
     __tablename__ = "plans"
-    id = Column(Integer(), primary_key=True, index=True, autoincrement=True)
-    name = Column(String(30))
+    id = Column(Integer(), Identity(start=3, cycle=True), primary_key=True, index=True, autoincrement=True)
+    name = Column(String(30), unique=True)
     price = Column(Float())
     billing_cycle = Column(Integer())
     page_list_limit = Column(String())
     api_list_limit = Column(String())
     users_limit = Column(Integer())
-    storage_limit = Column(Integer())
-    status = Column(Enum(PLAN_STATUS), default=PLAN_STATUS.ACTIVE)
+    storage_limit = Column(Float())
+    status = Column(Enum(PLAN_STATUS), default=PLAN_STATUS.DISABLED)
 
 class Order(Base):
     __tablename__ = "orders"
@@ -76,8 +76,8 @@ class Order(Base):
     plan_id = Column(ForeignKey("plans.id"))
     date = Column(DateTime(timezone=True))
     status = Column(Enum(ORDER_STATUS), default=ORDER_STATUS.CREATED)
-    payment_method = Column(Enum(PAYMENT_METHODS), nullable=True)
-    payment_status = Column(Enum(PAYMENT_STATUS), nullable=True)
+    payment_method = Column(Enum(PAYMENT_METHODS), nullable=False)
+    payment_status = Column(Enum(PAYMENT_STATUS), nullable=False)
     invoice_id = Column(String(30))
     billing_address = Column(String())
 
@@ -108,4 +108,4 @@ class ActivityLog(Base):
     id = Column(Integer(), primary_key=True, index=True, autoincrement=True)
     user_id = Column(ForeignKey("users.id"))
     activity_type = Column(Enum(ACTIVITY_TYPE), nullable=False)
-    activity_desc = Column(String(30))
+    activity_desc = Column(String)

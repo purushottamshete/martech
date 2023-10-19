@@ -8,6 +8,8 @@ from models import User as UserModel, USER_ROLES
 from passlib.context import CryptContext
 from uuid import UUID
 from utility import verify_password, get_password_hash
+from fastapi.responses import JSONResponse
+from .emails import send_email
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter()
@@ -15,7 +17,7 @@ router = APIRouter()
 # Get Admins
 @router.get("/admins/", dependencies=[Depends(get_current_superadmin_user)], response_model=List[UserSchema])
 async def get_admins():
-    users =  db.session.query(UserModel).filter(UserModel.role == USER_ROLES.ADMNIN).all()
+    users =  db.session.query(UserModel).filter(UserModel.role == USER_ROLES.ADMIN).all()
     return users
 
 # TODO Get Admin for the UserID
@@ -27,9 +29,9 @@ async def get_users():
     return users
 
 # Create User
-# Kept API open for User SingUP
-@router.post("/users/", response_model=UserSchema)
-def create_user(user: UserCreateSchema):
+# Kept API open for User Registration
+@router.post("/registration/")
+async def create_user(user: UserCreateSchema):
     db_user = get_user_by_email(email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -38,12 +40,17 @@ def create_user(user: UserCreateSchema):
     db.session.add(db_user)
     db.session.commit()
     db.session.refresh(db_user)
-    return db_user
+    # Send Email TODO
+    await send_email([db_user.email], db_user)
+    return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=f"Hi {db_user.first_name}, Thanks for choosing martech. Please check your email: {db_user.email} inbox and click on the link to confirm your registration."
+    )
 
 # Update User
 @router.put("/users/{user_id}", response_model=UserSchema, dependencies=[Depends(get_current_admin_user)])
-def update_user(id: UUID, user: UserUpdateSchema, current_user = Depends(get_current_admin_user)):
-    db_user =  db.session.query(UserModel).filter(UserModel.id == id).first()
+def update_user(user_id: UUID, user: UserUpdateSchema, current_user = Depends(get_current_admin_user)):
+    db_user =  db.session.query(UserModel).filter(UserModel.id == user_id).first()
     if not db_user:
         raise HTTPException(status_code=400, detail="Invalid User")
     
@@ -54,7 +61,7 @@ def update_user(id: UUID, user: UserUpdateSchema, current_user = Depends(get_cur
             raise HTTPException(status_code=401, detail="Not Autherized to change Role to Super Admin")
         
         # Admin Role can be given by SuperAdmin only
-        if user.role == USER_ROLES.ADMNIN:
+        if user.role == USER_ROLES.ADMIN:
             if current_user.role != USER_ROLES.SUPERADMIN:
                 raise HTTPException(status_code=401, detail="Not Autherized to change Role to Admin")
 
@@ -73,8 +80,8 @@ def update_user(id: UUID, user: UserUpdateSchema, current_user = Depends(get_cur
 
 # Update User Password
 @router.put("/users/password/{user_id}", response_model=UserSchema, dependencies=[Depends(get_current_admin_user)])
-def update_user(id: UUID, user: UserUpdatePasswordSchema, current_user = Depends(get_current_admin_user)):
-    db_user =  db.session.query(UserModel).filter(UserModel.id == id).first()
+def update_user(user_id: UUID, user: UserUpdatePasswordSchema, current_user = Depends(get_current_admin_user)):
+    db_user =  db.session.query(UserModel).filter(UserModel.id == user_id).first()
     if not db_user:
         raise HTTPException(status_code=400, detail="Invalid User")
     
@@ -84,7 +91,7 @@ def update_user(id: UUID, user: UserUpdatePasswordSchema, current_user = Depends
         raise HTTPException(status_code=401, detail="Not Autherized to change Password of Super Admin")
     
     # Admin Role can be given by SuperAdmin only
-    if db_user.role == USER_ROLES.ADMNIN:
+    if db_user.role == USER_ROLES.ADMIN:
         if current_user.role != USER_ROLES.SUPERADMIN:
             raise HTTPException(status_code=401, detail="Not Autherized to change password of Admin")
 
@@ -100,13 +107,13 @@ def update_user(id: UUID, user: UserUpdatePasswordSchema, current_user = Depends
 
 # Delete User
 @router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(get_current_superadmin_user)])
-def delete_user(id: UUID, current_user = Depends(get_current_admin_user)):
+def delete_user(user_id: UUID, current_user = Depends(get_current_admin_user)):
 
     # Only Super Admin can delete Users
     if current_user.role != USER_ROLES.SUPERADMIN: 
         raise HTTPException(status_code=401, detail="Not Autherized")
     
-    db_user =  db.session.query(UserModel).filter(UserModel.id == id).first()
+    db_user =  db.session.query(UserModel).filter(UserModel.id == user_id).first()
     if not db_user:
         raise HTTPException(status_code=400, detail="Invalid User")
     

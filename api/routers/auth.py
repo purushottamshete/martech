@@ -72,7 +72,7 @@ async def get_current_active_user(request: Request, background_tasks: Background
     return current_user
 
 async def get_current_admin_user(current_user: UserSchema = Depends(get_current_active_user)):
-    if not (current_user.role == USER_ROLES.ADMNIN or current_user.role == USER_ROLES.SUPERADMIN ):
+    if not (current_user.role == USER_ROLES.ADMIN or current_user.role == USER_ROLES.SUPERADMIN ):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
                             detail="Not a Admin user")
     return current_user

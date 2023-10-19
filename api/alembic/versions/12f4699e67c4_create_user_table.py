@@ -66,7 +66,7 @@ def upgrade() -> None:
                 "is_active": True,
                 "language": 'EN',
                 "timezone": pytz.country_timezones['IT'][0],
-                "role": USER_ROLES.ADMNIN
+                "role": USER_ROLES.ADMIN
             },
             {
                 "id": uuid.uuid4(),
@@ -78,7 +78,7 @@ def upgrade() -> None:
                 "is_active": True,
                 "language": 'EN',
                 "timezone": pytz.country_timezones['IT'][0],
-                "role": USER_ROLES.ADMNIN
+                "role": USER_ROLES.ADMIN
             },
             {
                 "id": uuid.uuid4(),
