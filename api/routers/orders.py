@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Body, HTTPException, status
 import logging
 from models import Order as OrderModel, ORDER_STATUS, PAYMENT_METHODS, PAYMENT_STATUS
-from .auth import get_current_active_user, get_current_superadmin_user
+from .auth import get_current_active_user, get_current_superadmin_user, get_current_admin_user
 from schema import OrderInDB as OrderInDBSchema, OrderUpdate as OrderUpdateSchema
 from schema import Order as OrderSchema
 from typing import List
@@ -26,6 +26,18 @@ async def get_orders(current_user = Depends(get_current_active_user)):
 
 # Get Order for a User
 # TODO only Super admin and Admin allowed to view it
+
+
+# Get Orders for a User
+@router.get("/orders/{user_id}", dependencies=[Depends(get_current_admin_user)], response_model=List[OrderInDBSchema])
+async def get_user_orders(user_id: UUID):
+    db_user =  db.session.query(UserModel).filter(UserModel.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=400, detail="Invalid User")
+    
+    user_orders =  db.session.query(OrderModel).filter(OrderModel.user_id == db_user.id).order_by(OrderModel.created_at.desc()).all()
+    return user_orders
+       
 
 # Create Orders
 @router.post("/orders/", dependencies=[Depends(get_current_active_user)], response_model=OrderInDBSchema)
