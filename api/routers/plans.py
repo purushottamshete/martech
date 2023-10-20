@@ -16,6 +16,9 @@ async def get_plans():
     plans =  db.session.query(PlanModel).filter(PlanModel.status == PLAN_STATUS.ACTIVE).all()
     return plans
 
+# Get Plan for a User
+# TODO only Super admin and Admin allowed to view it
+
 # Create Plans
 @router.post("/plans/", dependencies=[Depends(get_current_superadmin_user)], response_model=PlanInDBSchema)
 async def create_plan(plan: PlanSchema):

@@ -24,6 +24,9 @@ async def get_orders(current_user = Depends(get_current_active_user)):
         orders =  db.session.query(OrderModel).filter(OrderModel.user_id == current_user.id).order_by(OrderModel.created_at).all()
     return orders
 
+# Get Order for a User
+# TODO only Super admin and Admin allowed to view it
+
 # Create Orders
 @router.post("/orders/", dependencies=[Depends(get_current_active_user)], response_model=OrderInDBSchema)
 async def create_order(order: OrderSchema, current_user = Depends(get_current_active_user)):

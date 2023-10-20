@@ -59,7 +59,6 @@ class User(UserBase):
 class UserInDB(User):
     hashed_password: str
 
-
 class ActivityLog(BaseModel):
     id: int
     user_id: UUID
@@ -101,3 +100,17 @@ class OrderInDB(Order):
 
 class OrderUpdate(Order):
     status: ORDER_STATUS
+
+class Api(BaseModel):
+    name: str = Field(max_length=30)
+    description: str
+
+class ApiInDB(Api):
+    id: int
+
+class Page(BaseModel):
+    name: str = Field(max_length=30)
+    description: str
+    
+class PageInDB(Page):
+    id: int

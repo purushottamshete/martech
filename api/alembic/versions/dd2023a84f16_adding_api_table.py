@@ -22,7 +22,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     apis_table = op.create_table('apis',
         sa.Column('id', sa.Integer(), primary_key=True, nullable=False),
-        sa.Column('name', sa.String(length=30), nullable=False),
+        sa.Column('name', sa.String(length=30), nullable=False, unique=True),
         sa.Column('description', sa.String(), nullable=False),
         sa.Column('created_at', sa.DateTime, server_default=func.now()),
         sa.Column('updated_at', sa.DateTime,onupdate=func.now()),
@@ -32,17 +32,14 @@ def upgrade() -> None:
         apis_table,
         [
             {
-                "id": 1,
                 "name": "api1",
                 "description": "Test Api 1",
             },
             {
-                "id": 2,
                 "name": "api2",
                 "description": "Test Api 2",
             },
             {
-                "id": 3,
                 "name": "api3",
                 "description": "Test Api 3",
             },

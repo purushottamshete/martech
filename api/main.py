@@ -9,6 +9,8 @@ from routers.activity_log import router as activity_router
 from routers.emails import router as email_router
 from routers.plans import router as plan_router
 from routers.orders import router as order_router
+from routers.apis import router as api_router
+from routers.pages import router as page_router
 import settings
 
 app = FastAPI()
@@ -18,6 +20,8 @@ app.include_router(activity_router)
 app.include_router(email_router)
 app.include_router(plan_router)
 app.include_router(order_router)
+app.include_router(api_router)
+app.include_router(page_router)
 
 app.add_middleware(
     DBSessionMiddleware, 

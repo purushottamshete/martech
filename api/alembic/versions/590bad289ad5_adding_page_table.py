@@ -22,7 +22,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     pages_table = op.create_table('pages',
         sa.Column('id', sa.Integer(), primary_key=True, nullable=False),
-        sa.Column('name', sa.String(length=30), nullable=False),
+        sa.Column('name', sa.String(length=30), nullable=False, unique=True),
         sa.Column('description', sa.String(), nullable=False),
         sa.Column('created_at', sa.DateTime, server_default=func.now()),
         sa.Column('updated_at', sa.DateTime,onupdate=func.now()),
@@ -32,17 +32,14 @@ def upgrade() -> None:
         pages_table,
         [
             {
-                "id": 1,
                 "name": "page1",
                 "description": "Test Page 1",
             },
             {
-                "id": 2,
                 "name": "page2",
                 "description": "Test Page 2",
             },
             {
-                "id": 3,
                 "name": "page3",
                 "description": "Test Page 3",
             },
