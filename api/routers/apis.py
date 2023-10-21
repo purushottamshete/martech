@@ -19,9 +19,9 @@ async def get_apis():
 # Create Api
 @router.post("/apis/", dependencies=[Depends(get_current_superadmin_user)], response_model=ApiInDBSchema)
 async def create_api(api: ApiSchema):
-
     api_check =  db.session.query(ApiModel).filter(ApiModel.name == api.name).first()
     if api_check:
+        logger.exception("Api already exists")
         raise HTTPException(status_code=400, detail="Api already exists")
 
     db_api = ApiModel(  name=api.name, 
@@ -34,13 +34,16 @@ async def create_api(api: ApiSchema):
 # Update Api
 @router.put("/apis/{api_id}", dependencies=[Depends(get_current_superadmin_user)], response_model=ApiInDBSchema)
 def update_api(api_id: int, api: ApiSchema):
+    
     db_api =  db.session.query(ApiModel).filter(ApiModel.id == api_id).first()
     if not db_api:
+        logger.exception("Invalid Api")
         raise HTTPException(status_code=400, detail="Invalid Api")
     
     if db_api.name != api.name:
         api_check =  db.session.query(ApiModel).filter(ApiModel.name == api.name).first()
         if api_check:
+            logger.exception("Api already exists")
             raise HTTPException(status_code=400, detail="Api already exists")
     
     db_api.name = api.name
@@ -53,9 +56,9 @@ def update_api(api_id: int, api: ApiSchema):
 # Delete Api
 @router.delete("/apis/{api_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(get_current_superadmin_user)])
 def delete_api(api_id: int):
- 
     db_api =  db.session.query(ApiModel).filter(ApiModel.id == api_id).first()
     if not db_api:
+        logger.exception("Invalid Api")
         raise HTTPException(status_code=400, detail="Invalid Api")
     
     db.session.delete(db_api)

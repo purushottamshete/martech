@@ -24,15 +24,13 @@ async def get_orders(current_user = Depends(get_current_active_user)):
         orders =  db.session.query(OrderModel).filter(OrderModel.user_id == current_user.id).order_by(OrderModel.created_at).all()
     return orders
 
-# Get Order for a User
-# TODO only Super admin and Admin allowed to view it
-
 
 # Get Orders for a User
 @router.get("/orders/{user_id}", dependencies=[Depends(get_current_admin_user)], response_model=List[OrderInDBSchema])
 async def get_user_orders(user_id: UUID):
     db_user =  db.session.query(UserModel).filter(UserModel.id == user_id).first()
     if not db_user:
+        logger.exception("Inactive user")
         raise HTTPException(status_code=400, detail="Invalid User")
     
     user_orders =  db.session.query(OrderModel).filter(OrderModel.user_id == db_user.id).order_by(OrderModel.created_at.desc()).all()
@@ -45,10 +43,12 @@ async def create_order(order: OrderSchema, current_user = Depends(get_current_ac
 
     db_user =  db.session.query(UserModel).filter(UserModel.id == order.user_id).first()
     if not db_user:
+        logger.exception("Invalid user")
         raise HTTPException(status_code=400, detail="Invalid User")
     
     db_plan =  db.session.query(PlanModel).filter(PlanModel.id == order.plan_id).first()
     if not db_plan:
+        logger.exception("Invalid user")
         raise HTTPException(status_code=400, detail="Invalid Plan")
     
     if order.payment_status == PAYMENT_STATUS.PROCESSING:
@@ -58,6 +58,7 @@ async def create_order(order: OrderSchema, current_user = Depends(get_current_ac
     elif order.payment_status == PAYMENT_STATUS.SUCCEEDED:
         ord_status = ORDER_STATUS.SUCCESS
     else:
+        logger.exception("Invalid Payment Status")
         raise HTTPException(status_code=400, detail="Invlaid Payment Status")
 
     try:
@@ -66,8 +67,8 @@ async def create_order(order: OrderSchema, current_user = Depends(get_current_ac
         else:
             tz = pytz.UTC
     except Exception as e:
+        logger.exception("Invalid Timezone")
         tz = pytz.UTC
-        #raise HTTPException(status_code=400, detail="Invlaid Timezone")
     
     db_order = OrderModel(  user_id=order.user_id, 
                             plan_id=order.plan_id, 
@@ -88,6 +89,7 @@ async def create_order(order: OrderSchema, current_user = Depends(get_current_ac
 def update_order(order_id: UUID, order: OrderSchema, current_user = Depends(get_current_active_user)):
     db_order =  db.session.query(OrderModel).filter(OrderModel.id == order_id).first()
     if not db_order:
+        logger.exception("Invalid Order")
         raise HTTPException(status_code=400, detail="Invalid Order")
     
     # Super Admin Allowed to update all orders
@@ -96,14 +98,17 @@ def update_order(order_id: UUID, order: OrderSchema, current_user = Depends(get_
     else:
         # Others allowed to update own order only
         if current_user.id != db_order.user_id:
+            logger.exception("Not Autherized to update this order")
             raise HTTPException(status_code=401, detail="Not Autherized to update this order")
         
     db_user =  db.session.query(UserModel).filter(UserModel.id == order.user_id).first()
     if not db_user:
+        logger.exception("Not Autherized to update this order")
         raise HTTPException(status_code=400, detail="Invalid User")
     
     db_plan =  db.session.query(PlanModel).filter(PlanModel.id == order.plan_id).first()
     if not db_plan:
+        logger.exception("Invalid Plan")
         raise HTTPException(status_code=400, detail="Invalid Plan")
     
     if order.payment_status == PAYMENT_STATUS.PROCESSING:
@@ -113,6 +118,7 @@ def update_order(order_id: UUID, order: OrderSchema, current_user = Depends(get_
     elif order.payment_status == PAYMENT_STATUS.SUCCEEDED:
         ord_status = ORDER_STATUS.SUCCESS
     else:
+        logger.exception("Invlaid Payment Status")
         raise HTTPException(status_code=400, detail="Invlaid Payment Status")
 
     db_order.user_id = order.user_id
@@ -133,10 +139,12 @@ def delete_order(order_id: UUID, current_user = Depends(get_current_superadmin_u
 
     # Only Super Admin can delete Orders
     if current_user.role != USER_ROLES.SUPERADMIN: 
+        logger.exception("Not Autherized")
         raise HTTPException(status_code=401, detail="Not Autherized")
     
     db_order =  db.session.query(OrderModel).filter(OrderModel.id == order_id).first()
     if not db_order:
+        logger.exception("Invalid Order")
         raise HTTPException(status_code=400, detail="Invalid Order")
     
     db.session.delete(db_order)

@@ -10,8 +10,10 @@ from uuid import UUID
 from utility import verify_password, get_password_hash
 from fastapi.responses import JSONResponse
 from .emails import send_email
+import logging
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Get Admins
@@ -20,7 +22,6 @@ async def get_admins():
     users =  db.session.query(UserModel).filter(UserModel.role == USER_ROLES.ADMIN).all()
     return users
 
-# TODO Get Admin for the UserID
 
 # Get Users
 @router.get("/users/", dependencies=[Depends(get_current_admin_user)], response_model=List[UserSchema])
@@ -34,13 +35,13 @@ async def get_users():
 async def create_user(user: UserCreateSchema):
     db_user = get_user_by_email(email=user.email)
     if db_user:
+        logger.exception("Email already registered")
         raise HTTPException(status_code=400, detail="Email already registered")
 
     db_user = UserModel(first_name=user.first_name, last_name=user.last_name, email=user.email, hashed_password=get_password_hash(user.password))
     db.session.add(db_user)
     db.session.commit()
     db.session.refresh(db_user)
-    # Send Email TODO
     await send_email([db_user.email], db_user)
     return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -52,17 +53,20 @@ async def create_user(user: UserCreateSchema):
 def update_user(user_id: UUID, user: UserUpdateSchema, current_user = Depends(get_current_admin_user)):
     db_user =  db.session.query(UserModel).filter(UserModel.id == user_id).first()
     if not db_user:
+        logger.exception("Invalid User")
         raise HTTPException(status_code=400, detail="Invalid User")
     
     # Change of Role
     if user.role != db_user.role:
         # No one is allowed to change role to Super Admin
         if user.role == USER_ROLES.SUPERADMIN: 
+            logger.exception("Not Autherized to change Role to Super Admin")
             raise HTTPException(status_code=401, detail="Not Autherized to change Role to Super Admin")
         
         # Admin Role can be given by SuperAdmin only
         if user.role == USER_ROLES.ADMIN:
             if current_user.role != USER_ROLES.SUPERADMIN:
+                logger.exception("Not Autherized to change Role to Admin")
                 raise HTTPException(status_code=401, detail="Not Autherized to change Role to Admin")
 
     db_user.first_name = user.first_name
@@ -83,19 +87,23 @@ def update_user(user_id: UUID, user: UserUpdateSchema, current_user = Depends(ge
 def update_user(user_id: UUID, user: UserUpdatePasswordSchema, current_user = Depends(get_current_admin_user)):
     db_user =  db.session.query(UserModel).filter(UserModel.id == user_id).first()
     if not db_user:
+        logger.exception("Invalid User")
         raise HTTPException(status_code=400, detail="Invalid User")
     
     # No one is allowed to change password of Super Admin 
     # Superadmin password will change only from backend db
     if db_user.role == USER_ROLES.SUPERADMIN: 
+        logger.exception("Not Autherized to change Password of Super Admin")
         raise HTTPException(status_code=401, detail="Not Autherized to change Password of Super Admin")
     
     # Admin Role can be given by SuperAdmin only
     if db_user.role == USER_ROLES.ADMIN:
         if current_user.role != USER_ROLES.SUPERADMIN:
+            logger.exception("Not Autherized to change password of Admin")
             raise HTTPException(status_code=401, detail="Not Autherized to change password of Admin")
 
     if not verify_password(user.password, db_user.hashed_password):
+        logger.exception("Invalid Existing Password")
         raise HTTPException(status_code=400, detail="Invalid Existing Password")
    
     db_user.hashed_password = get_password_hash(user.new_password)
@@ -111,14 +119,17 @@ def delete_user(user_id: UUID, current_user = Depends(get_current_admin_user)):
 
     # Only Super Admin can delete Users
     if current_user.role != USER_ROLES.SUPERADMIN: 
+        logger.exception("Not Autherized")
         raise HTTPException(status_code=401, detail="Not Autherized")
     
     db_user =  db.session.query(UserModel).filter(UserModel.id == user_id).first()
     if not db_user:
+        logger.exception("Invalid User")
         raise HTTPException(status_code=400, detail="Invalid User")
     
     # No one is allowed to delete Super Admin
     if db_user.role == USER_ROLES.SUPERADMIN: 
+        logger.exception("Not Autherized")
         raise HTTPException(status_code=401, detail="Not Autherized")
     
     db.session.delete(db_user)

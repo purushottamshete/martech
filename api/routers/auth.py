@@ -57,28 +57,33 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             raise credentials_exception
         token_data = TokenData(email=email)
     except JWTError:
+        logger.exception("Could not validate credentials")
         raise credentials_exception
     
     user = get_user_by_email(email=token_data.email)
     if user is None:
+        logger.exception("Could not validate credentials")
         raise credentials_exception
     return user
 
 
 async def get_current_active_user(request: Request, background_tasks: BackgroundTasks, current_user: UserSchema = Depends(get_current_user)):
     if not current_user.is_active:
+        logger.exception("Inactive user")
         raise HTTPException(status_code=400, detail="Inactive user")
     background_tasks.add_task(audit_log, id=current_user.id, type=ACTIVITY_TYPE.CALLAPI, desc=request.url.path)
     return current_user
 
 async def get_current_admin_user(current_user: UserSchema = Depends(get_current_active_user)):
     if not (current_user.role == USER_ROLES.ADMIN or current_user.role == USER_ROLES.SUPERADMIN ):
+        logger.exception("Not a Admin user")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
                             detail="Not a Admin user")
     return current_user
 
 async def get_current_superadmin_user(current_user: UserSchema = Depends(get_current_active_user)):
     if not current_user.role == USER_ROLES.SUPERADMIN:
+        logger.exception("Not a Super Admin user")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
                             detail="Not a Super Admin user")
     return current_user
@@ -89,7 +94,7 @@ async def login_for_access_token(request: Request, form_data: Annotated[OAuth2Pa
     """
     This method is used to generate the access token
 
-    Args: 
+    Parameters: 
     form_date : OAuth2PasswordRequestForm
         Form data containing username and password of OAuth2PasswordRequestForm type
         In our case we are using email as a Username
@@ -100,6 +105,7 @@ async def login_for_access_token(request: Request, form_data: Annotated[OAuth2Pa
     """
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
+        logger.exception("Incorrect username or password")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",

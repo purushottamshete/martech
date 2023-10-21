@@ -14,6 +14,5 @@ router = APIRouter()
 # Get Activity Logs
 @router.get("/activity_log/", dependencies=[Depends(get_current_superadmin_user)], response_model=List[ActivityLogSchema])
 async def get_activity_logs(from_dt: datetime = datetime.now(), to_dt: datetime=datetime.now()):
-    print(type(from_dt))
     activity_logs =  db.session.query(ActivityLogModel).filter(ActivityLogModel.created_at >= from_dt).filter(ActivityLogModel.created_at <= to_dt).order_by(ActivityLogModel.created_at)
     return activity_logs

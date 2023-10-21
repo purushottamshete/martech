@@ -22,6 +22,7 @@ async def get_plans():
 async def get_user_plans(user_id: UUID):
     db_user =  db.session.query(UserModel).filter(UserModel.id == user_id).first()
     if not db_user:
+        logger.exception("Invalid User")
         raise HTTPException(status_code=400, detail="Invalid User")
     
     user_orders =  db.session.query(OrderModel).filter(OrderModel.user_id == db_user.id).order_by(OrderModel.created_at.desc()).all()
@@ -39,6 +40,7 @@ async def get_user_plans(user_id: UUID):
 async def create_plan(plan: PlanSchema):
     plans_check =  db.session.query(PlanModel).filter(PlanModel.name == plan.name).first()
     if plans_check:
+        logger.exception("Plan already exists")
         raise HTTPException(status_code=400, detail="Plan already exists")
 
     db_plan = PlanModel(name=plan.name, 
@@ -59,6 +61,7 @@ async def create_plan(plan: PlanSchema):
 def update_plan(plan_id: int, plan: PlanUpdateSchema):
     db_plan =  db.session.query(PlanModel).filter(PlanModel.id == plan_id).first()
     if not db_plan:
+        logger.exception("Invalid Plan")
         raise HTTPException(status_code=400, detail="Invalid Plan")
     
     db_plan.name = plan.name
@@ -80,10 +83,12 @@ def delete_plan(plan_id:int, current_user = Depends(get_current_superadmin_user)
 
     # Only Super Admin can delete Plans
     if current_user.role != USER_ROLES.SUPERADMIN: 
+        logger.exception("Not Autherized")
         raise HTTPException(status_code=401, detail="Not Autherized")
     
     db_plan =  db.session.query(PlanModel).filter(PlanModel.id == plan_id).first()
     if not db_plan:
+        logger.exception("Invalid Plan")
         raise HTTPException(status_code=400, detail="Invalid Plan")
     
     db.session.delete(db_plan)

@@ -22,6 +22,7 @@ async def create_page(page: PageSchema):
 
     page_check =  db.session.query(PageModel).filter(PageModel.name == page.name).first()
     if page_check:
+        logger.exception("Page already exists")
         raise HTTPException(status_code=400, detail="Page already exists")
 
     db_page = PageModel(  name=page.name, 
@@ -36,11 +37,13 @@ async def create_page(page: PageSchema):
 def update_page(page_id: int, page: PageSchema):
     db_page =  db.session.query(PageModel).filter(PageModel.id == page_id).first()
     if not db_page:
+        logger.exception("Invalid Page")
         raise HTTPException(status_code=400, detail="Invalid Page")
     
     if db_page.name != page.name:
         page_check =  db.session.query(PageModel).filter(PageModel.name == page.name).first()
         if page_check:
+            logger.exception("Page already exists")
             raise HTTPException(status_code=400, detail="Page already exists")
     
     db_page.name = page.name
@@ -56,6 +59,7 @@ def delete_page(page_id: int):
  
     db_page =  db.session.query(PageModel).filter(PageModel.id == page_id).first()
     if not db_page:
+        logger.exception("Invalid Page")
         raise HTTPException(status_code=400, detail="Invalid Page")
     
     db.session.delete(db_page)

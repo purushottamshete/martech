@@ -16,8 +16,8 @@ email_conf = ConnectionConfig(
     MAIL_PASSWORD=settings.EMAIL_PASSWORD,
     MAIL_FROM=settings.EMAIL_FROM,
     MAIL_PORT=587,
-    MAIL_SERVER=settings.EMAIL_PASSWORD,
-    MAIL_SSL_TLS=True,
+    MAIL_SERVER=settings.EMAIL_SERVER,
+    MAIL_SSL_TLS=False,
     MAIL_STARTTLS=True,
     USE_CREDENTIALS=True
 )
@@ -45,8 +45,12 @@ async def send_email(email: list, user: UserModel):
         body=html_template,
         subtype="html"
     )
-    fm = FastMail(email_conf)
-    await fm.send_message(message=message)
+    try:
+        fm = FastMail(email_conf)
+        await fm.send_message(message=message)
+        logger.info(f"Email Sent Successfully to {user.email}")
+    except Exception as e:
+        logger.info(f"Email Sent Failed to {user.email}, {e}")
     
 async def verify_email_token(token: str):
     token_exception = HTTPException(
@@ -59,11 +63,13 @@ async def verify_email_token(token: str):
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         email = payload.get("sub")
         if email is None:
+            logger.exception("Invalid Token")
             raise token_exception
         db_user = db.session.query(UserModel).filter(UserModel.email == email).first()
         return db_user
     
     except JWTError:
+        logger.exception("Invalid Token")
         raise token_exception
     
 @router.get('/verification', response_class=JSONResponse)
@@ -77,6 +83,7 @@ async def email_verification(request: Request, token: str):
             status_code=status.HTTP_200_OK,
             content=f"Email: {user.email} Verified Successfully"
         )
+    logger.exception("Invalid Token")
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid Token",
