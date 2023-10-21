@@ -32,6 +32,11 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - ALGORITHM=${ALGORITHM}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+      - EMAIL_USERNAME=${EMAIL_USERNAME}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - EMAIL_SERVER=${EMAIL_SERVER}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - LOG_FILE=${LOG_FILE}
     volumes:
       - ./api:/martech
     ports:
